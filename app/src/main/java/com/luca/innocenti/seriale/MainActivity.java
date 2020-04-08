@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     };
     private UsbService usbService;
     private TextView display;
+    private TextView dati_view;
     private EditText editText;
     private MyHandler mHandler;
     private final ServiceConnection usbConnection = new ServiceConnection() {
@@ -95,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
         display = (TextView) findViewById(R.id.textView1);
         editText = (EditText) findViewById(R.id.editText1);
+        dati_view = (TextView) findViewById(R.id.dati);
         Button sendButton = (Button) findViewById(R.id.buttonSend);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -169,10 +171,11 @@ public class MainActivity extends AppCompatActivity {
             switch (msg.what) {
                 case UsbService.MESSAGE_FROM_SERIAL_PORT:
                     String data = (String) msg.obj;
-                    mActivity.get().display.append(data);
+                    //mActivity.get().display.append(data);
+                    mActivity.get().dati_view.setText(data);
                     senddata invio = new senddata();
                     try {
-                        String response = invio.run("http://150.217.73.108/seriale/index.php&stringa="+data.toString());
+                        String response = invio.run("http://150.217.73.108/seriale/index.php?stringa="+data.toString());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
