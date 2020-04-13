@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+<html>
+<head>  
+<script>
+window.onload = function () {
+ 
+var dataPoints = [];
+var dataPoints2 = [];
+ 
+var chart = new CanvasJS.Chart("chartContainer", {
+	animationEnabled: true,
+	exportEnabled: true,
+	title:{
+		text: "Roll"
+	},
+	axisY: {
+		title: "Gradi",
+		includeZero: false
+	},
+
+	axisX: {
+		title: "Tempo",
+		includeZero: false
+	},
+
+
+	data: [{
+		type: "line",
+		toolTipContent: "",
+		xValueType: "dateTime",
+		dataPoints: dataPoints
+	},
+	{
+		type: "line",
+		toolTipContent: "",
+		xValueType: "dateTime",
+		dataPoints: dataPoints2
+}]
+});
+
+ 
+$.get("sensore2.txt", getDataPointsFromCSV);
+ 
+//CSV Format
+//Year,Volume
+function getDataPointsFromCSV(csv) {
+	var csvLines = points = [];
+	csvLines = csv.split(/[\r?\n|\r|\n]+/);
+	for (var i = 0; i < csvLines.length; i++) {
+		if (csvLines[i].length > 0) {
+			points = csvLines[i].split(";");
+			dataPoints.push({
+				label: points[0],
+				x: Date.parse(points[0]),
+				y: parseFloat(points[2])
+			});
+			dataPoints2.push({
+				label: points[0],
+				x: Date.parse(points[0]),
+				y: parseFloat(points[4])
+			});
+
+		}
+	}
+	chart.render();
+}
+ 
+}
+</script>
+</head>
+<body>
+<div id="chartContainer" style="height: 370px; width: 100%;"></div>
+<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</body>
+</html>
