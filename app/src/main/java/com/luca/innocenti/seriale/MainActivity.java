@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -20,20 +21,15 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Set;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static java.sql.DriverManager.println;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,11 +63,15 @@ public class MainActivity extends AppCompatActivity {
     private TextView dati_view;
     private EditText editText;
     private MyHandler mHandler;
+    int percentage = 0;
+
+
     private final ServiceConnection usbConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName arg0, IBinder arg1) {
             usbService = ((UsbService.UsbBinder) arg1).getService();
             usbService.setHandler(mHandler);
+
         }
 
         @Override
@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
             usbService = null;
         }
     };
+    private static Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +89,13 @@ public class MainActivity extends AppCompatActivity {
         {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
+        }
+
+        Intent batteryStatus = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (batteryStatus != null) {
+            int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+            int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, 1);
+            percentage = Math.round(level / (float) scale * 100);
         }
 
 
@@ -160,9 +168,18 @@ public class MainActivity extends AppCompatActivity {
     private static class MyHandler extends Handler {
         private final WeakReference<MainActivity> mActivity;
         private Context ctx;
+        int percentage = 0;
 
         public MyHandler(MainActivity activity) {
+
             mActivity = new WeakReference<>(activity);
+
+            Intent batteryStatus = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (batteryStatus != null) {
+                int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+                int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, 1);
+                percentage = Math.round(level / (float) scale * 100);
+            }
             }
 
 
@@ -175,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
                     mActivity.get().dati_view.setText(data);
                     senddata invio = new senddata();
                     try {
-                        String response = invio.run("http://150.217.73.108/seriale/index.php?stringa="+data.toString());
+                        String response = invio.run("http://150.217.73.108/seriale/index.php?stringa="+data.toString()+"&batteria="+percentage);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
